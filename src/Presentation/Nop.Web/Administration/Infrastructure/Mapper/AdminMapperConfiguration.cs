@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
 using Nop.Admin.Models.Blogs;
 using Nop.Admin.Models.Catalog;
 using Nop.Admin.Models.Cms;
@@ -42,6 +43,7 @@ using Nop.Core.Domain.Stores;
 using Nop.Core.Domain.Tax;
 using Nop.Core.Domain.Topics;
 using Nop.Core.Domain.Vendors;
+using Nop.Core.Infrastructure.Mapper;
 using Nop.Core.Plugins;
 using Nop.Services.Authentication.External;
 using Nop.Services.Cms;
@@ -50,26 +52,25 @@ using Nop.Services.Seo;
 using Nop.Services.Shipping;
 using Nop.Services.Shipping.Pickup;
 using Nop.Services.Tax;
+using Nop.Web.Framework.Security.Captcha;
 
 namespace Nop.Admin.Infrastructure.Mapper
 {
     /// <summary>
-    /// AutoMapper configuration
+    /// AutoMapper configuration for admin area models
     /// </summary>
-    public static class AutoMapperConfiguration
+    public class AdminMapperConfiguration : IMapperConfiguration
     {
-        private static MapperConfiguration _mapperConfiguration;
-        private static IMapper _mapper;
-
         /// <summary>
-        /// Initialize mapper
+        /// Get configuration
         /// </summary>
-        public static void Init()
+        /// <returns>Mapper configuration action</returns>
+        public Action<IMapperConfigurationExpression> GetConfiguration()
         {
-            _mapperConfiguration = new MapperConfiguration(cfg =>
-            {
-                //TODO remove 'CreatedOnUtc' ignore mappings because now presentation layer models have 'CreatedOn' property and core entities have 'CreatedOnUtc' property (distinct names)
+            //TODO remove 'CreatedOnUtc' ignore mappings because now presentation layer models have 'CreatedOn' property and core entities have 'CreatedOnUtc' property (distinct names)
 
+            Action<IMapperConfigurationExpression> action = cfg =>
+            {
                 //address
                 cfg.CreateMap<Address, AddressModel>()
                     .ForMember(dest => dest.AddressHtml, mo => mo.Ignore())
@@ -181,8 +182,7 @@ namespace Nop.Admin.Infrastructure.Mapper
                     .ForMember(dest => dest.EmailAccount, mo => mo.Ignore())
                     .ForMember(dest => dest.EmailAccountId, mo => mo.Ignore())
                     .ForMember(dest => dest.AttachmentFilePath, mo => mo.Ignore())
-                    .ForMember(dest => dest.AttachmentFileName, mo => mo.Ignore())
-                    .ForMember(dest => dest.AttachedDownloadId, mo => mo.Ignore());
+                    .ForMember(dest => dest.AttachmentFileName, mo => mo.Ignore());
                 //campaign
                 cfg.CreateMap<Campaign, CampaignModel>()
                     .ForMember(dest => dest.DontSendBeforeDate, mo => mo.Ignore())
@@ -190,6 +190,8 @@ namespace Nop.Admin.Infrastructure.Mapper
                     .ForMember(dest => dest.AllowedTokens, mo => mo.Ignore())
                     .ForMember(dest => dest.AvailableStores, mo => mo.Ignore())
                     .ForMember(dest => dest.AvailableCustomerRoles, mo => mo.Ignore())
+                    .ForMember(dest => dest.AvailableEmailAccounts, mo => mo.Ignore())
+                    .ForMember(dest => dest.EmailAccountId, mo => mo.Ignore())
                     .ForMember(dest => dest.TestEmail, mo => mo.Ignore())
                     .ForMember(dest => dest.CustomProperties, mo => mo.Ignore());
                 cfg.CreateMap<CampaignModel, Campaign>()
@@ -300,6 +302,7 @@ namespace Nop.Admin.Infrastructure.Mapper
                     .ForMember(dest => dest.SelectedManufacturerIds, mo => mo.Ignore())
                     .ForMember(dest => dest.SelectedDiscountIds, mo => mo.Ignore())
                     .ForMember(dest => dest.AvailableDeliveryDates, mo => mo.Ignore())
+                    .ForMember(dest => dest.AvailableProductAvailabilityRanges, mo => mo.Ignore())
                     .ForMember(dest => dest.AvailableWarehouses, mo => mo.Ignore())
                     .ForMember(dest => dest.AvailableBasepriceUnits, mo => mo.Ignore())
                     .ForMember(dest => dest.AvailableBasepriceBaseUnits, mo => mo.Ignore())
@@ -404,6 +407,11 @@ namespace Nop.Admin.Infrastructure.Mapper
                     .ForMember(dest => dest.Locales, mo => mo.Ignore())
                     .ForMember(dest => dest.CustomProperties, mo => mo.Ignore());
                 cfg.CreateMap<DeliveryDateModel, DeliveryDate>();
+                //product availability ranges
+                cfg.CreateMap<ProductAvailabilityRange, ProductAvailabilityRangeModel>()
+                    .ForMember(dest => dest.Locales, mo => mo.Ignore())
+                    .ForMember(dest => dest.CustomProperties, mo => mo.Ignore());
+                cfg.CreateMap<ProductAvailabilityRangeModel, ProductAvailabilityRange>();
                 //shipping rate computation methods
                 cfg.CreateMap<IShippingRateComputationMethod, ShippingRateComputationMethodModel>()
                     .ForMember(dest => dest.FriendlyName, mo => mo.MapFrom(src => src.PluginDescriptor.FriendlyName))
@@ -465,6 +473,8 @@ namespace Nop.Admin.Infrastructure.Mapper
                     .ForMember(dest => dest.CanChangeEnabled, mo => mo.Ignore())
                     .ForMember(dest => dest.IsEnabled, mo => mo.Ignore())
                     .ForMember(dest => dest.LogoUrl, mo => mo.Ignore())
+                    .ForMember(dest => dest.AvailableCustomerRoles, mo => mo.Ignore())
+                    .ForMember(dest => dest.SelectedCustomerRoleIds, mo => mo.Ignore())
                     .ForMember(dest => dest.AvailableStores, mo => mo.Ignore())
                     .ForMember(dest => dest.SelectedStoreIds, mo => mo.Ignore())
                     .ForMember(dest => dest.Locales, mo => mo.Ignore())
@@ -644,12 +654,18 @@ namespace Nop.Admin.Infrastructure.Mapper
                 cfg.CreateMap<StoreModel, Store>();
 
                 //Settings
+                cfg.CreateMap<CaptchaSettings, GeneralCommonSettingsModel.CaptchaSettingsModel>()
+                    .ForMember(dest => dest.AvailableReCaptchaVersions, mo => mo.Ignore())
+                    .ForMember(dest => dest.CustomProperties, mo => mo.Ignore());
+                cfg.CreateMap<GeneralCommonSettingsModel.CaptchaSettingsModel, CaptchaSettings>()
+                    .ForMember(dest => dest.ReCaptchaTheme, mo => mo.Ignore())
+                    .ForMember(dest => dest.ReCaptchaLanguage, mo => mo.Ignore());
                 cfg.CreateMap<TaxSettings, TaxSettingsModel>()
                     .ForMember(dest => dest.DefaultTaxAddress, mo => mo.Ignore())
                     .ForMember(dest => dest.TaxDisplayTypeValues, mo => mo.Ignore())
                     .ForMember(dest => dest.TaxBasedOnValues, mo => mo.Ignore())
                     .ForMember(dest => dest.PaymentMethodAdditionalFeeTaxCategories, mo => mo.Ignore())
-                    .ForMember(dest => dest.ShippingTaxCategories, mo => mo.Ignore())
+                    .ForMember(dest => dest.TaxCategories, mo => mo.Ignore())
                     .ForMember(dest => dest.EuVatShopCountries, mo => mo.Ignore())
                     .ForMember(dest => dest.ActiveStoreScopeConfiguration, mo => mo.Ignore())
                     .ForMember(dest => dest.PricesIncludeTax_OverrideForStore, mo => mo.Ignore())
@@ -660,6 +676,7 @@ namespace Nop.Admin.Infrastructure.Mapper
                     .ForMember(dest => dest.HideZeroTax_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.HideTaxInOrderSummary_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.ForceTaxExclusionFromOrderSubtotal_OverrideForStore, mo => mo.Ignore())
+                    .ForMember(dest => dest.DefaultTaxCategoryId_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.TaxBasedOn_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.DefaultTaxAddress_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.ShippingIsTaxable_OverrideForStore, mo => mo.Ignore())
@@ -780,7 +797,8 @@ namespace Nop.Admin.Infrastructure.Mapper
                     .ForMember(dest => dest.AllowViewUnpublishedProductPage_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.DisplayDiscontinuedMessageForUnpublishedProducts_OverrideForStore,
                         mo => mo.Ignore())
-                    .ForMember(dest => dest.ShowProductSku_OverrideForStore, mo => mo.Ignore())
+                    .ForMember(dest => dest.ShowSkuOnProductDetailsPage_OverrideForStore, mo => mo.Ignore())
+                    .ForMember(dest => dest.ShowSkuOnCatalogPages_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.ShowManufacturerPartNumber_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.ShowGtin_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.ShowFreeShippingNotification_OverrideForStore, mo => mo.Ignore())
@@ -795,6 +813,7 @@ namespace Nop.Admin.Infrastructure.Mapper
                     .ForMember(dest => dest.PageShareCode_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.ProductReviewsMustBeApproved_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.AllowAnonymousUsersToReviewProduct_OverrideForStore, mo => mo.Ignore())
+                    .ForMember(dest => dest.ProductReviewPossibleOnlyAfterPurchasing_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.NotifyStoreOwnerAboutNewProductReviews_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.ShowProductReviewsPerStore_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.EmailAFriendEnabled_OverrideForStore, mo => mo.Ignore())
@@ -848,7 +867,8 @@ namespace Nop.Admin.Infrastructure.Mapper
                     .ForMember(dest => dest.DefaultManufacturerPageSizeOptions, mo => mo.Ignore())
                     .ForMember(dest => dest.DefaultManufacturerPageSize, mo => mo.Ignore())
                     .ForMember(dest => dest.ProductSortingEnumDisabled, mo => mo.Ignore())
-                    .ForMember(dest => dest.ProductSortingEnumDisplayOrder, mo => mo.Ignore());
+                    .ForMember(dest => dest.ProductSortingEnumDisplayOrder, mo => mo.Ignore())
+                    .ForMember(dest => dest.ExportImportUseDropdownlistsForAssociatedEntities, mo => mo.Ignore());
                 cfg.CreateMap<RewardPointsSettings, RewardPointsSettingsModel>()
                     .ForMember(dest => dest.PrimaryStoreCurrencyCode, mo => mo.Ignore())
                     .ForMember(dest => dest.ActiveStoreScopeConfiguration, mo => mo.Ignore())
@@ -858,6 +878,8 @@ namespace Nop.Admin.Infrastructure.Mapper
                     .ForMember(dest => dest.PointsForRegistration_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.PointsForPurchases_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.PointsForPurchases_Awarded_OverrideForStore, mo => mo.Ignore())
+                    .ForMember(dest => dest.ActivationDelay_OverrideForStore, mo => mo.Ignore())
+                    .ForMember(dest => dest.ActivatePointsImmediately, mo => mo.Ignore())
                     .ForMember(dest => dest.PointsForPurchases_Canceled_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.DisplayHowMuchWillBeEarned_OverrideForStore, mo => mo.Ignore())
                     .ForMember(dest => dest.PageSize_OverrideForStore, mo => mo.Ignore())
@@ -983,29 +1005,16 @@ namespace Nop.Admin.Infrastructure.Mapper
                     .ForMember(dest => dest.CustomProperties, mo => mo.Ignore());
                 cfg.CreateMap<TopicTemplateModel, TopicTemplate>();
 
-            });
-            _mapper = _mapperConfiguration.CreateMapper();
+            };
+            return action;
         }
 
         /// <summary>
-        /// Mapper
+        /// Order of this mapper implementation
         /// </summary>
-        public static IMapper Mapper
+        public int Order
         {
-            get
-            {
-                return _mapper;
-            }
-        }
-        /// <summary>
-        /// Mapper configuration
-        /// </summary>
-        public static MapperConfiguration MapperConfiguration
-        {
-            get
-            {
-                return _mapperConfiguration;
-            }
+            get { return 0; }
         }
     }
 }
