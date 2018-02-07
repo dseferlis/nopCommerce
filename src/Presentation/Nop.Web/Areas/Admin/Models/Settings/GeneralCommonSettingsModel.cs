@@ -61,6 +61,10 @@ namespace Nop.Web.Areas.Admin.Models.Settings
             public int LogoPictureId { get; set; }
             public bool LogoPictureId_OverrideForStore { get; set; }
 
+            [NopResourceDisplayName("Admin.Configuration.Settings.GeneralCommon.Favicon")]
+            public string FaviconName { get; set; }
+            public bool FaviconName_OverrideForStore { get; set; }
+
             [NopResourceDisplayName("Admin.Configuration.Settings.GeneralCommon.DisplayEuCookieLawWarning")]
             public bool DisplayEuCookieLawWarning { get; set; }
             public bool DisplayEuCookieLawWarning_OverrideForStore { get; set; }

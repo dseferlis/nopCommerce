@@ -223,6 +223,12 @@ set @resources='
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.ProductAttributes.Attributes.Values.Fields.PriceAdjustment.Hint">
     <Value>The price adjustment applied when choosing this attribute value. For example ''10'' to add 10 dollars. Or 10% if ''Use percentage'' is ticked.</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.GeneralCommon.Favicon">
+    <Value>Favicon</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.GeneralCommon.Favicon.Hint">
+    <Value>Upload your favicon file.</Value>
   </LocaleResource> 
 </Language>
 '
@@ -493,4 +499,12 @@ GO
 UPDATE [Setting]
 SET [Value] = N'true'
 WHERE [Name] = N'commonsettings.usestoredprocedureforloadingcategories'
+GO
+
+--new setting
+IF NOT EXISTS (SELECT 1 FROM [Setting] WHERE [Name] = N'storeinformationsettings.faviconname')
+BEGIN
+    INSERT [Setting] ([Name], [Value], [StoreId])
+    VALUES (N'storeinformationsettings.faviconname', N'', 0)
+END
 GO

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Core;
@@ -78,6 +79,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly ILocalizedEntityService _localizedEntityService;
         private readonly NopConfig _config;
 	    private readonly CurrencySettings _currencySettings;
+        private readonly IHostingEnvironment _hostingEnvironment;
 
         #endregion
 
@@ -107,7 +109,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             ILanguageService languageService,
             ILocalizedEntityService localizedEntityService,
             NopConfig config,
-            CurrencySettings currencySettings)
+            CurrencySettings currencySettings,
+            IHostingEnvironment hostingEnvironment)
         {
             this._settingService = settingService;
             this._countryService = countryService;
@@ -134,6 +137,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             this._localizedEntityService = localizedEntityService;
             this._config = config;
             this._currencySettings = currencySettings;
+            this._hostingEnvironment = hostingEnvironment;
         }
 
         #endregion
@@ -1706,6 +1710,21 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             model.StoreInformationSettings.AllowCustomerToSelectTheme = storeInformationSettings.AllowCustomerToSelectTheme;
             model.StoreInformationSettings.LogoPictureId = storeInformationSettings.LogoPictureId;
+            model.StoreInformationSettings.FaviconName = storeInformationSettings.FaviconName;
+
+            //if favicon name is not set, check whether the favicon with default name exists in the root
+            if (string.IsNullOrEmpty(model.StoreInformationSettings.FaviconName))
+            {
+                var faviconFileName = $"favicon-{storeScope}.ico";
+                if (!System.IO.File.Exists(System.IO.Path.Combine(_hostingEnvironment.WebRootPath, faviconFileName)))
+                {
+                    faviconFileName = "favicon.ico";
+                    if (!System.IO.File.Exists(System.IO.Path.Combine(_hostingEnvironment.WebRootPath, faviconFileName)))
+                        faviconFileName = string.Empty;
+                }
+                model.StoreInformationSettings.FaviconName = faviconFileName;
+            }
+
             //EU Cookie law
             model.StoreInformationSettings.DisplayEuCookieLawWarning = storeInformationSettings.DisplayEuCookieLawWarning;
             //social pages
@@ -1732,6 +1751,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 model.StoreInformationSettings.DefaultStoreTheme_OverrideForStore = _settingService.SettingExists(storeInformationSettings, x => x.DefaultStoreTheme, storeScope);
                 model.StoreInformationSettings.AllowCustomerToSelectTheme_OverrideForStore = _settingService.SettingExists(storeInformationSettings, x => x.AllowCustomerToSelectTheme, storeScope);
                 model.StoreInformationSettings.LogoPictureId_OverrideForStore = _settingService.SettingExists(storeInformationSettings, x => x.LogoPictureId, storeScope);
+                model.StoreInformationSettings.FaviconName_OverrideForStore = _settingService.SettingExists(storeInformationSettings, x => x.FaviconName, storeScope);
                 model.StoreInformationSettings.DisplayEuCookieLawWarning_OverrideForStore = _settingService.SettingExists(storeInformationSettings, x => x.DisplayEuCookieLawWarning, storeScope);
                 model.StoreInformationSettings.FacebookLink_OverrideForStore = _settingService.SettingExists(storeInformationSettings, x => x.FacebookLink, storeScope);
                 model.StoreInformationSettings.TwitterLink_OverrideForStore = _settingService.SettingExists(storeInformationSettings, x => x.TwitterLink, storeScope);
@@ -1882,6 +1902,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             storeInformationSettings.DefaultStoreTheme = model.StoreInformationSettings.DefaultStoreTheme;
             storeInformationSettings.AllowCustomerToSelectTheme = model.StoreInformationSettings.AllowCustomerToSelectTheme;
             storeInformationSettings.LogoPictureId = model.StoreInformationSettings.LogoPictureId;
+            storeInformationSettings.FaviconName = model.StoreInformationSettings.FaviconName;
+
             //EU Cookie law
             storeInformationSettings.DisplayEuCookieLawWarning = model.StoreInformationSettings.DisplayEuCookieLawWarning;
             //social pages
@@ -1908,6 +1930,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             _settingService.SaveSettingOverridablePerStore(storeInformationSettings, x => x.DefaultStoreTheme, model.StoreInformationSettings.DefaultStoreTheme_OverrideForStore, storeScope, false);
             _settingService.SaveSettingOverridablePerStore(storeInformationSettings, x => x.AllowCustomerToSelectTheme, model.StoreInformationSettings.AllowCustomerToSelectTheme_OverrideForStore, storeScope, false);
             _settingService.SaveSettingOverridablePerStore(storeInformationSettings, x => x.LogoPictureId, model.StoreInformationSettings.LogoPictureId_OverrideForStore, storeScope, false);
+            _settingService.SaveSettingOverridablePerStore(storeInformationSettings, x => x.FaviconName, model.StoreInformationSettings.FaviconName_OverrideForStore, storeScope, false);
             _settingService.SaveSettingOverridablePerStore(storeInformationSettings, x => x.DisplayEuCookieLawWarning, model.StoreInformationSettings.DisplayEuCookieLawWarning_OverrideForStore, storeScope, false);
             _settingService.SaveSettingOverridablePerStore(storeInformationSettings, x => x.FacebookLink, model.StoreInformationSettings.FacebookLink_OverrideForStore, storeScope, false);
             _settingService.SaveSettingOverridablePerStore(storeInformationSettings, x => x.TwitterLink, model.StoreInformationSettings.TwitterLink_OverrideForStore, storeScope, false);
@@ -2106,6 +2129,37 @@ namespace Nop.Web.Areas.Admin.Controllers
             SuccessNotification(_localizationService.GetResource("Admin.Configuration.Updated"));
             
             return RedirectToAction("GeneralCommon");
+        }
+
+        [HttpPost]
+        [AdminAntiForgery(true)]
+        public virtual IActionResult UploadFavicon()
+        {
+            try
+            {
+                //try to get uploaded file
+                var httpPostedFile = Request.Form.Files.FirstOrDefault();
+                if (httpPostedFile == null)
+                    return Json(new { success = false, message = "No file uploaded" });
+
+                //get file name
+                var storeScope = this.GetActiveStoreScopeConfiguration(_storeService, _workContext);
+                var fileName = !string.IsNullOrEmpty(httpPostedFile.FileName) ? httpPostedFile.FileName : Request.Form["qqfilename"].ToString();
+                fileName = System.IO.Path.GetFileName(fileName); //remove path (passed in IE)
+                if (storeScope > 0)
+                    fileName = $"{System.IO.Path.GetFileNameWithoutExtension(fileName)}-{storeScope}{System.IO.Path.GetExtension(fileName)}";
+
+                //upload favicon on the site root
+                var destinationFile = System.IO.Path.Combine(_hostingEnvironment.WebRootPath, fileName);
+                using (var stream = new System.IO.FileStream(destinationFile, System.IO.FileMode.OpenOrCreate))
+                    httpPostedFile.CopyTo(stream);
+
+                return Json(new { success = true, faviconName = fileName });
+            }
+            catch (Exception exception)
+            {
+                return Json(new { success = false, message = $"An error occurred during uploading. {exception.Message}" });
+            }
         }
 
         [HttpPost, ActionName("GeneralCommon")]

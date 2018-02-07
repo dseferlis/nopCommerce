@@ -611,19 +611,17 @@ namespace Nop.Web.Factories
         public virtual FaviconModel PrepareFaviconModel()
         {
             var model = new FaviconModel();
+            var faviconFileName = _storeInformationSettings.FaviconName;
 
-            //try loading a store specific favicon
-
-            var faviconFileName = $"favicon-{_storeContext.CurrentStore.Id}.ico";
-            var localFaviconPath = System.IO.Path.Combine(_hostingEnvironment.WebRootPath, faviconFileName);
-            if (!System.IO.File.Exists(localFaviconPath))
+            //if favicon name is not set, check whether the favicon with default name exists in the root
+            if (string.IsNullOrEmpty(faviconFileName))
             {
-                //try loading a generic favicon
-                faviconFileName = "favicon.ico";
-                localFaviconPath = System.IO.Path.Combine(_hostingEnvironment.WebRootPath, faviconFileName);
-                if (!System.IO.File.Exists(localFaviconPath))
+                faviconFileName = $"favicon-{_storeContext.CurrentStore.Id}.ico";
+                if (!System.IO.File.Exists(System.IO.Path.Combine(_hostingEnvironment.WebRootPath, faviconFileName)))
                 {
-                    return model;
+                    faviconFileName = "favicon.ico";
+                    if (!System.IO.File.Exists(System.IO.Path.Combine(_hostingEnvironment.WebRootPath, faviconFileName)))
+                        return model;
                 }
             }
 

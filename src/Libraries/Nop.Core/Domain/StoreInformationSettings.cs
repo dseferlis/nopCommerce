@@ -24,6 +24,11 @@ namespace Nop.Core.Domain
         public int LogoPictureId { get; set; }
 
         /// <summary>
+        /// Gets or sets a name of the favicon file
+        /// </summary>
+        public string FaviconName { get; set; }
+
+        /// <summary>
         /// Gets or sets a default store theme
         /// </summary>
         public string DefaultStoreTheme { get; set; }
