@@ -177,7 +177,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrentCarts))
                 return AccessDeniedKendoGridJson();
 
-            _shoppingCartService.DeleteShoppingCartItem(id);
+            _shoppingCartService.DeleteShoppingCartItem(id, removeRequiredProducts: false);
 
             return new NullJsonResult();
         }
