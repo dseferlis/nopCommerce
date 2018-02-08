@@ -17,8 +17,9 @@ namespace Nop.Services.Orders
         /// <param name="shoppingCartItem">Shopping cart item</param>
         /// <param name="resetCheckoutData">A value indicating whether to reset checkout data</param>
         /// <param name="ensureOnlyActiveCheckoutAttributes">A value indicating whether to ensure that only active checkout attributes are attached to the current customer</param>
+        /// <param name="removeRequiredProducts">A value indicating whether to remove required products from the cart if the main one is removed</param>
         void DeleteShoppingCartItem(ShoppingCartItem shoppingCartItem, bool resetCheckoutData = true,
-            bool ensureOnlyActiveCheckoutAttributes = false);
+            bool ensureOnlyActiveCheckoutAttributes = false, bool removeRequiredProducts = true);
 
         /// <summary>
         /// Delete shopping cart item
@@ -26,8 +27,9 @@ namespace Nop.Services.Orders
         /// <param name="shoppingCartItemId">Shopping cart item ID</param>
         /// <param name="resetCheckoutData">A value indicating whether to reset checkout data</param>
         /// <param name="ensureOnlyActiveCheckoutAttributes">A value indicating whether to ensure that only active checkout attributes are attached to the current customer</param>
+        /// <param name="removeRequiredProducts">A value indicating whether to remove required products from the cart if the main one is removed</param>
         void DeleteShoppingCartItem(int shoppingCartItemId, bool resetCheckoutData = true,
-            bool ensureOnlyActiveCheckoutAttributes = false);
+            bool ensureOnlyActiveCheckoutAttributes = false, bool removeRequiredProducts = true);
 
         /// <summary>
         /// Deletes expired shopping cart items
