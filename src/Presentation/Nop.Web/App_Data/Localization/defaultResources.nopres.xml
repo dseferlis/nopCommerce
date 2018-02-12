@@ -5418,6 +5418,12 @@
   <LocaleResource Name="Admin.Configuration.Settings.Catalog.ExportImportProductCategoryBreadcrumb.Hint">
     <Value>Check if products should be exported/imported with a full category name including names of all its parents.</Value>
   </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.Catalog.ExportImportRelatedEntitiesByName">
+    <Value>Export/Import related entities using name</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.Catalog.ExportImportRelatedEntitiesByName.Hint">
+    <Value>Check if related entities should be exported/imported using name.</Value>
+  </LocaleResource>    
   <LocaleResource Name="Admin.Configuration.Settings.Catalog.ExportImportSplitProductsFile">
     <Value>Export/Import products. Allow splitting file</Value>
   </LocaleResource>

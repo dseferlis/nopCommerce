@@ -488,6 +488,12 @@ set @resources='
   <LocaleResource Name="Admin.Configuration.Settings.GeneralCommon.BlockTitle.FooterItems">
     <Value>Footer items</Value>
   </LocaleResource> 
+  <LocaleResource Name="Admin.Configuration.Settings.Catalog.ExportImportRelatedEntitiesByName">
+    <Value>Export/Import related entities using name</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.Catalog.ExportImportRelatedEntitiesByName.Hint">
+    <Value>Check if related entities should be exported/imported using name.</Value>
+  </LocaleResource>    
 </Language>
 '
 
@@ -1015,5 +1021,13 @@ IF NOT EXISTS (SELECT 1 FROM [Setting] WHERE [name] = N'displaydefaultfooteritem
 BEGIN
     INSERT [Setting] ([Name], [Value], [StoreId])
     VALUES (N'displaydefaultfooteritemsettings.DisplayWishlistFooterItem', N'true', 0)
+END
+GO
+
+--new setting
+IF NOT EXISTS (SELECT 1 FROM [Setting] WHERE [name] = N'catalogsettings.exportimportrelatedentitiesbyname')
+BEGIN
+    INSERT [Setting] ([Name], [Value], [StoreId])
+    VALUES (N'catalogsettings.exportimportrelatedentitiesbyname', N'true', 0)
 END
 GO
