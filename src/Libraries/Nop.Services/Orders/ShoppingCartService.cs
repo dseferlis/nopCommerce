@@ -148,9 +148,8 @@ namespace Nop.Services.Orders
         /// <param name="shoppingCartItem">Shopping cart item</param>
         /// <param name="resetCheckoutData">A value indicating whether to reset checkout data</param>
         /// <param name="ensureOnlyActiveCheckoutAttributes">A value indicating whether to ensure that only active checkout attributes are attached to the current customer</param>
-        /// <param name="removeRequiredProducts">A value indicating whether to remove required products from the cart if the main one is removed</param>
         public virtual void DeleteShoppingCartItem(ShoppingCartItem shoppingCartItem, bool resetCheckoutData = true, 
-            bool ensureOnlyActiveCheckoutAttributes = false, bool removeRequiredProducts = true)
+            bool ensureOnlyActiveCheckoutAttributes = false)
         {
             if (shoppingCartItem == null)
                 throw new ArgumentNullException(nameof(shoppingCartItem));
@@ -189,12 +188,9 @@ namespace Nop.Services.Orders
             //event notification
             _eventPublisher.EntityDeleted(shoppingCartItem);
 
-            if(!_catalogSettings.RemoveRequiredProducts || !removeRequiredProducts)
+            if(!_catalogSettings.RemoveRequiredProducts)
                 return;
-
-            if (shoppingCartItem.ShoppingCartType != ShoppingCartType.ShoppingCart)
-                return;
-
+            
             var product = _productService.GetProductById(shoppingCartItem.ProductId);
 
             if (product == null || !product.RequireOtherProducts || !product.AutomaticallyAddRequiredProducts)
@@ -202,7 +198,7 @@ namespace Nop.Services.Orders
 
             var requiredProductIds = product.ParseRequiredProductIds();
             var requiredShoppingCartItems = customer.ShoppingCartItems
-                .Where(x => x.ShoppingCartType == ShoppingCartType.ShoppingCart)
+                .Where(x => x.ShoppingCartType == shoppingCartItem.ShoppingCartType)
                 .Where(item => requiredProductIds.Any(id => id == item.ProductId))
                 .ToList();
 
@@ -219,9 +215,8 @@ namespace Nop.Services.Orders
         /// <param name="shoppingCartItemId">Shopping cart item ID</param>
         /// <param name="resetCheckoutData">A value indicating whether to reset checkout data</param>
         /// <param name="ensureOnlyActiveCheckoutAttributes">A value indicating whether to ensure that only active checkout attributes are attached to the current customer</param>
-        /// <param name="removeRequiredProducts">A value indicating whether to remove required products from the cart if the main one is removed</param>
         public virtual void DeleteShoppingCartItem(int shoppingCartItemId, bool resetCheckoutData = true,
-            bool ensureOnlyActiveCheckoutAttributes = false, bool removeRequiredProducts = true)
+            bool ensureOnlyActiveCheckoutAttributes = false)
         {
             var shoppingCartItem = _sciRepository.Table.FirstOrDefault(sci => sci.Id == shoppingCartItemId);
             if(shoppingCartItem != null)
