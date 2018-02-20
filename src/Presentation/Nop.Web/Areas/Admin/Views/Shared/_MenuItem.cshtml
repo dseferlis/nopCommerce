@@ -1,5 +1,6 @@
 ﻿@model SiteMapNode
 @using Nop.Core
+@using Nop.Core.Domain.Customers
 @using Nop.Core.Domain.Localization
 @using Nop.Web.Framework.Menu
 @inject IWorkContext workContext
@@ -16,7 +17,20 @@
         url = Model.Url.StartsWith("~/", StringComparison.Ordinal) ? Url.Content(Model.Url) : Model.Url;
     }
     var isActive = Model.ContainsSystemName(Html.GetActiveMenuItemSystemName());
+
+    var hideForVendor = new List<string>
+    {
+        "Sales",
+        "Catalog",
+        "Help"
+    };
 }
+
+@if (hideForVendor.Any(p => p.Equals(Model.SystemName, StringComparison.InvariantCultureIgnoreCase)))
+{
+    return;
+}
+
 @if (!string.IsNullOrEmpty(url))
 {
     <li @(isActive ? Html.Raw("class=\"active current-active-item\"") : null)>
