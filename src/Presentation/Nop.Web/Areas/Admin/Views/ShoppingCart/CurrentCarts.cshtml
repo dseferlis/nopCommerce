@@ -121,7 +121,7 @@
                                     },
                                     requestEnd: function(e) {
                                         if (e.type == "destroy") {
-                                            this.read();
+                                            $("#carts-grid").data('kendoGrid').dataSource.read();
                                         }
                                     },
                                     schema: {
