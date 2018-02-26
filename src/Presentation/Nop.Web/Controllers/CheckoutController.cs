@@ -199,7 +199,8 @@ namespace Nop.Web.Controllers
                     sci.RentalStartDateUtc,
                     sci.RentalEndDateUtc,
                     sci.Quantity,
-                    false);
+                    false,
+                    sci.Id);
                 if (sciWarnings.Any())
                     return RedirectToRoute("ShoppingCart");
             }
