@@ -150,6 +150,37 @@
                         <span asp-validation-for="CustomerSettings.CheckUsernameAvailabilityEnabled"></span>
                     </div>
                 </div>
+                <div id="pnlValidateUsernameEnabled">
+                    <div class="form-group advanced-setting">
+                        <div class="col-md-3">
+                            <nop-label asp-for="CustomerSettings.ValidateUsernameEnabled" />
+                        </div>
+                        <div class="col-md-9">
+                            <nop-editor asp-for="CustomerSettings.ValidateUsernameEnabled" />
+                            <span asp-validation-for="CustomerSettings.ValidateUsernameEnabled"></span>
+                        </div>
+                    </div>
+                    <nop-nested-setting asp-for="CustomerSettings.ValidateUsernameEnabled">
+                        <div class="form-group advanced-setting" id="pnlUsernameValidationRule">
+                            <div class="col-md-3">
+                                <nop-label asp-for="CustomerSettings.UsernameValidationRule" />
+                            </div>
+                            <div class="col-md-9">
+                                <nop-editor asp-for="CustomerSettings.UsernameValidationRule" />
+                                <span asp-validation-for="CustomerSettings.UsernameValidationRule"></span>
+                            </div>
+                        </div>
+                        <div class="form-group advanced-setting" id="pnlValidateUsernameUseRegex">
+                            <div class="col-md-3">
+                                <nop-label asp-for="CustomerSettings.ValidateUsernameUseRegex" />
+                            </div>
+                            <div class="col-md-9">
+                                <nop-editor asp-for="CustomerSettings.ValidateUsernameUseRegex" />
+                                <span asp-validation-for="CustomerSettings.ValidateUsernameUseRegex"></span>
+                            </div>
+                        </div>
+                    </nop-nested-setting>
+                </div>
             </nop-nested-setting>
             <div class="form-group advanced-setting">
                 <div class="col-md-3">
@@ -273,9 +304,11 @@
         $(document).ready(function () {
             $("#@Html.IdFor(model => model.CustomerSettings.AllowCustomersToUploadAvatars)").click(toggleAvatar);
             $("#@Html.IdFor(model => model.CustomerSettings.UsernamesEnabled)").click(toggleUsername);
+            $("#@Html.IdFor(model => model.CustomerSettings.ValidateUsernameEnabled)").click(toggleValidateUsername);
 
             toggleAvatar();
             toggleUsername();
+            toggleValidateUsername();
         });
 
         function toggleAvatar() {
@@ -290,9 +323,21 @@
             if ($('#@Html.IdFor(model => model.CustomerSettings.UsernamesEnabled)').is(':checked')) {
                 $('#pnlAllowUsersToChangeUsernames').show();
                 $('#pnlCheckUsernameAvailability').show();
+                $('#pnlValidateUsernameEnabled').show();
             } else {
                 $('#pnlAllowUsersToChangeUsernames').hide();
                 $('#pnlCheckUsernameAvailability').hide();
+                $('#pnlValidateUsernameEnabled').hide();
+            }
+        }
+
+            function toggleValidateUsername() {
+            if ($('#@Html.IdFor(model => model.CustomerSettings.ValidateUsernameEnabled)').is(':checked')) {
+                $('#pnlUsernameValidationRule').show();
+                $('#pnlValidateUsernameUseRegex').show();
+            } else {
+                $('#pnlUsernameValidationRule').hide();
+                $('#pnlValidateUsernameUseRegex').hide();
             }
         }
         </script>

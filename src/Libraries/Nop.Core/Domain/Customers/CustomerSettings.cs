@@ -23,6 +23,21 @@ namespace Nop.Core.Domain.Customers
         public bool AllowUsersToChangeUsernames { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether username will be validated (when registering or changing in 'My Account')
+        /// </summary>
+        public bool ValidateUsernameEnabled { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether username will be validated using regex (when registering or changing in 'My Account')
+        /// </summary>
+        public bool ValidateUsernameUseRegex { get; set; }
+
+        /// <summary>
+        /// Gets or sets a username validation rule
+        /// </summary>
+        public string UsernameValidationRule { get; set; }
+
+        /// <summary>
         /// Default password format for customers
         /// </summary>
         public PasswordFormat DefaultPasswordFormat { get; set; }
@@ -302,7 +317,7 @@ namespace Nop.Core.Domain.Customers
         /// Gets or sets a value indicating whether privacy policy should accepted during registration
         /// </summary>
         public bool AcceptPrivacyPolicyEnabled { get; set; }
-
+        
         #endregion
     }
 }
